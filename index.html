@@ -246,6 +246,36 @@ html.light .msg.bot{background:rgba(15,23,42,.05);border-color:rgba(15,23,42,.08
 .toast.success{border-color:var(--green)}
 .toast.error{border-color:var(--red)}
 
+/* ══ AGUARDANDO APROVAÇÃO / ACESSO NEGADO ═══════════════ */
+.pending-icon,.rejected-icon{width:64px;height:64px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 18px;box-shadow:0 10px 30px rgba(0,0,0,.2)}
+.pending-icon{background:linear-gradient(135deg,rgba(245,158,11,.18),rgba(245,158,11,.06));border:1px solid rgba(245,158,11,.3)}
+.rejected-icon{background:linear-gradient(135deg,rgba(239,68,68,.18),rgba(239,68,68,.06));border:1px solid rgba(239,68,68,.3)}
+
+/* ══ BADGE ADMIN / PENDENTES ══════════════════════════════ */
+.btn-admin{position:relative}
+.admin-count-badge{position:absolute;top:-6px;right:-6px;background:var(--red);color:#fff;font-size:.6rem;font-weight:800;border-radius:100px;min-width:16px;height:16px;padding:0 4px;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 2px var(--bg0)}
+.role-chip{font-size:.58rem;font-weight:800;letter-spacing:.6px;text-transform:uppercase;padding:2px 8px;border-radius:100px;background:rgba(0,212,160,.12);border:1px solid rgba(0,212,160,.3);color:var(--acc);margin-left:6px}
+
+/* ══ ADMIN OVERLAY (aprovação de usuários) ═══════════════ */
+.admin-list{display:flex;flex-direction:column;gap:10px;padding:6px 0}
+.admin-user-row{display:flex;align-items:center;gap:12px;padding:13px 15px;border-radius:14px;background:rgba(255,255,255,.03);border:1px solid var(--bdr);transition:all .2s}
+.admin-user-row:hover{border-color:rgba(0,212,160,.3)}
+.admin-user-avatar{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--acc),var(--acc2));display:flex;align-items:center;justify-content:center;font-weight:900;color:#06120e;flex-shrink:0}
+.admin-user-info{flex:1;min-width:0}
+.admin-user-name{font-size:.84rem;font-weight:700;color:var(--t1)}
+.admin-user-meta{font-size:.7rem;color:var(--t3);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.admin-user-actions{display:flex;gap:7px;flex-shrink:0}
+.btn-approve,.btn-reject,.btn-revoke{border:none;border-radius:10px;padding:8px 13px;font-size:.72rem;font-weight:800;transition:all .2s;white-space:nowrap}
+.btn-approve{background:linear-gradient(135deg,var(--green),#16a34a);color:#06210f}
+.btn-approve:hover{transform:translateY(-1px);box-shadow:0 8px 20px rgba(34,197,94,.35)}
+.btn-reject{background:rgba(239,68,68,.10);border:1px solid rgba(239,68,68,.3);color:var(--red)}
+.btn-reject:hover{background:rgba(239,68,68,.18)}
+.btn-revoke{background:rgba(255,255,255,.05);border:1px solid var(--bdc);color:var(--t2)}
+.btn-revoke:hover{border-color:var(--amber);color:var(--amber)}
+.admin-tabs{display:flex;gap:8px;margin-bottom:16px}
+.admin-tab{background:rgba(255,255,255,.04);border:1px solid var(--bdc);border-radius:100px;padding:7px 15px;font-size:.74rem;font-weight:700;color:var(--t3);transition:all .2s}
+.admin-tab.active{color:var(--acc);border-color:var(--acc);background:rgba(0,212,160,.08)}
+
 @media(max-width:1000px){.grid-2{grid-template-columns:1fr}.kpi-grid{grid-template-columns:1fr 1fr}}
 @media(max-width:768px){.topbar{padding:0 14px}.main{padding:14px 14px 30px}.form-row,.phone-row{grid-template-columns:1fr}}
 @media(max-width:500px){.auth-card{padding:32px 22px;margin:10px}.topbar-sub{display:none}.kpi-grid{grid-template-columns:1fr 1fr}.maya-panel{border-radius:20px}}
@@ -337,6 +367,33 @@ html.light .msg.bot{background:rgba(15,23,42,.05);border-color:rgba(15,23,42,.08
       <div class="auth-status" id="reset-status"></div>
     </div>
 
+    <!-- AGUARDANDO APROVAÇÃO -->
+    <div class="auth-view" id="view-pending">
+      <div class="auth-logo">
+        <div class="pending-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--amber)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+        </div>
+        <h1>Cadastro em Análise</h1>
+        <p>Sua conta foi criada com sucesso. O acesso ao painel do contrato precisa ser aprovado pelo administrador do sistema antes que você possa entrar.</p>
+        <div class="auth-divider"></div>
+      </div>
+      <div class="auth-footer-note">Assim que seu acesso for aprovado, você poderá entrar normalmente com seu e-mail e senha.</div>
+      <button class="btn-link" onclick="handleLogout()" style="margin-top:18px">Voltar para o login</button>
+    </div>
+
+    <!-- ACESSO NEGADO -->
+    <div class="auth-view" id="view-rejected">
+      <div class="auth-logo">
+        <div class="rejected-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><line x1="9" y1="9" x2="15" y2="15"/><line x1="15" y1="9" x2="9" y2="15"/></svg>
+        </div>
+        <h1>Acesso Não Autorizado</h1>
+        <p>O administrador do sistema não autorizou o acesso desta conta ao painel do contrato. Entre em contato com o administrador para mais informações.</p>
+        <div class="auth-divider"></div>
+      </div>
+      <button class="btn-link" onclick="handleLogout()" style="margin-top:18px">Voltar para o login</button>
+    </div>
+
     <div class="auth-footer-note">A.W. Chesterton do Brasil · Painel individual de contrato<br>Selo Mecânico · Klabin Monte Alegre</div>
   </div>
 </div>
@@ -363,6 +420,9 @@ html.light .msg.bot{background:rgba(15,23,42,.05);border-color:rgba(15,23,42,.08
     </div>
     <div class="topbar-right">
       <span class="status-pill" id="status-pill"><span class="status-dot"></span><span id="status-text">Carregando</span></span>
+      <button class="btn-action btn-admin" onclick="openAdminPanel()" id="btn-admin-panel" style="display:none">
+        Administração<span class="admin-count-badge" id="admin-pending-badge" style="display:none">0</span>
+      </button>
       <button class="btn-action" onclick="toggleTheme()" id="dash-theme-btn">☀️ Claro</button>
       <button class="btn-logout" onclick="handleLogout()">Sair</button>
     </div>
@@ -459,6 +519,33 @@ html.light .msg.bot{background:rgba(15,23,42,.05);border-color:rgba(15,23,42,.08
   <img class="maya-fab-img" src="MAYA.png" alt="" onerror="this.style.display='none'">
   <span class="maya-fab-label">MAYA</span>
 </button>
+
+<!-- ══════════════════ ADMIN PANEL (aprovação de usuários) ══════════════════ -->
+<div class="maya-overlay" id="admin-overlay" aria-hidden="true">
+  <div class="maya-panel">
+    <div class="maya-panel-hdr">
+      <div class="maya-brand">
+        <div class="maya-logo" style="background:linear-gradient(135deg,rgba(79,142,247,.25),rgba(0,212,160,.2))">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--t1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </div>
+        <div>
+          <div class="maya-kicker">Painel do Administrador</div>
+          <div class="maya-title">Aprovação de Usuários</div>
+        </div>
+      </div>
+      <button class="maya-close" onclick="closeAdminPanel()">✕</button>
+    </div>
+    <div class="maya-body" id="admin-body">
+      <div class="admin-tabs">
+        <button class="admin-tab active" data-filter="pending" onclick="filterAdminUsers('pending')">Pendentes</button>
+        <button class="admin-tab" data-filter="approved" onclick="filterAdminUsers('approved')">Aprovados</button>
+        <button class="admin-tab" data-filter="rejected" onclick="filterAdminUsers('rejected')">Rejeitados</button>
+        <button class="admin-tab" data-filter="all" onclick="filterAdminUsers('all')">Todos</button>
+      </div>
+      <div class="admin-list" id="admin-list"><div class="placeholder"><div class="spinner"></div></div></div>
+    </div>
+  </div>
+</div>
 
 <div class="toast" id="toast"></div>
 
@@ -589,10 +676,10 @@ async function handleSignup() {
     if (error) throw error;
 
     if (data.session) {
-      setStatus('signup-status', 'Conta criada com sucesso! Entrando...', 'success');
+      setStatus('signup-status', 'Conta criada com sucesso! Verificando aprovação de acesso...', 'success');
       setTimeout(() => initApp(), 800);
     } else {
-      setStatus('signup-status', 'Conta criada! Verifique seu e-mail para confirmar o acesso antes de entrar.', 'success');
+      setStatus('signup-status', 'Conta criada! Verifique seu e-mail para confirmar o acesso. Depois de confirmado, seu acesso ainda depende da aprovação do administrador do sistema.', 'success');
       showToast('Enviamos um e-mail de confirmação para ' + email, 'success');
     }
   } catch (err) {
@@ -689,6 +776,10 @@ async function handleLogout() {
   document.getElementById('dashboard').style.display = 'none';
   document.getElementById('auth-screen').style.display = 'flex';
   document.getElementById('maya-fab').classList.remove('visible');
+  document.getElementById('btn-admin-panel').style.display = 'none';
+  closeAdminPanel();
+  clearInterval(window._adminBadgeTimer);
+  window.CURRENT_PROFILE = null;
   showView('login');
 }
 
@@ -712,14 +803,47 @@ async function initApp() {
     return;
   }
 
+  const { data: profile, error: profileErr } = await sb.from('profiles')
+    .select('id,email,first_name,last_name,role,status')
+    .eq('id', session.user.id).single();
+
+  if (profileErr || !profile) {
+    document.getElementById('dashboard').style.display = 'none';
+    document.getElementById('auth-screen').style.display = 'flex';
+    showView('pending');
+    return;
+  }
+
+  window.CURRENT_PROFILE = profile;
+
+  if (profile.status === 'rejected') {
+    document.getElementById('dashboard').style.display = 'none';
+    document.getElementById('auth-screen').style.display = 'flex';
+    showView('rejected');
+    return;
+  }
+  if (profile.status !== 'approved') {
+    document.getElementById('dashboard').style.display = 'none';
+    document.getElementById('auth-screen').style.display = 'flex';
+    showView('pending');
+    return;
+  }
+
   document.getElementById('auth-screen').style.display = 'none';
   document.getElementById('dashboard').style.display = 'flex';
   document.getElementById('maya-fab').classList.add('visible');
 
-  const { data: profile } = await sb.from('profiles').select('first_name,last_name').eq('id', session.user.id).single();
-  const name = profile ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim() : session.user.email;
-  document.getElementById('display-user').textContent = name || session.user.email;
-  document.getElementById('avatar-initial').textContent = (name || session.user.email || '?').trim().charAt(0).toUpperCase();
+  const name = `${profile.first_name || ''} ${profile.last_name || ''}`.trim();
+  document.getElementById('display-user').innerHTML = (name || profile.email || session.user.email) +
+    (profile.role === 'admin' ? '<span class="role-chip">Admin</span>' : '');
+  document.getElementById('avatar-initial').textContent = (name || profile.email || '?').trim().charAt(0).toUpperCase();
+
+  if (profile.role === 'admin') {
+    document.getElementById('btn-admin-panel').style.display = 'flex';
+    refreshAdminBadge();
+    clearInterval(window._adminBadgeTimer);
+    window._adminBadgeTimer = setInterval(refreshAdminBadge, CFG.REFRESH_MS);
+  }
 
   document.getElementById('pbi-frame').src = CFG.PBI_SELOS;
   loadDashboard();
@@ -892,6 +1016,104 @@ async function sendMayaMessage() {
   } finally {
     document.getElementById('maya-send-btn').disabled = false;
   }
+}
+
+/* ══════════════ ADMIN PANEL (aprovação de usuários) ══════════════ */
+let adminFilter = 'pending';
+
+async function refreshAdminBadge() {
+  try {
+    const { count } = await sb.from('profiles').select('id', { count: 'exact', head: true }).eq('status', 'pending');
+    const badge = document.getElementById('admin-pending-badge');
+    if (count && count > 0) { badge.style.display = 'flex'; badge.textContent = count > 99 ? '99+' : count; }
+    else { badge.style.display = 'none'; }
+  } catch (err) { console.error(err); }
+}
+
+function openAdminPanel() {
+  if (!window.CURRENT_PROFILE || window.CURRENT_PROFILE.role !== 'admin') return;
+  document.getElementById('admin-overlay').classList.add('active');
+  filterAdminUsers(adminFilter);
+}
+function closeAdminPanel() {
+  const el = document.getElementById('admin-overlay');
+  if (el) el.classList.remove('active');
+}
+
+async function filterAdminUsers(filter) {
+  adminFilter = filter;
+  document.querySelectorAll('.admin-tab').forEach(t => t.classList.toggle('active', t.dataset.filter === filter));
+  await loadAdminUsers();
+}
+
+async function loadAdminUsers() {
+  const listEl = document.getElementById('admin-list');
+  listEl.innerHTML = '<div class="placeholder"><div class="spinner"></div></div>';
+  try {
+    let query = sb.from('profiles').select('id,email,first_name,last_name,phone,role,status,created_at').order('created_at', { ascending: false });
+    if (adminFilter !== 'all') query = query.eq('status', adminFilter);
+    const { data, error } = await query;
+    if (error) throw error;
+    renderAdminUsers(data || []);
+    refreshAdminBadge();
+  } catch (err) {
+    listEl.innerHTML = '<div class="placeholder err">⚠️ Não foi possível carregar os usuários.</div>';
+    console.error(err);
+  }
+}
+
+function renderAdminUsers(rows) {
+  const listEl = document.getElementById('admin-list');
+  if (!rows.length) { listEl.innerHTML = '<div class="placeholder">Nenhum usuário nesta categoria.</div>'; return; }
+  listEl.innerHTML = rows.map(u => {
+    const name = `${u.first_name || ''} ${u.last_name || ''}`.trim() || u.email;
+    const initial = (name || '?').trim().charAt(0).toUpperCase();
+    let actions = '';
+    if (u.status === 'pending') {
+      actions = `<button class="btn-approve" onclick="approveUser('${u.id}')">Aprovar</button>
+                 <button class="btn-reject" onclick="rejectUser('${u.id}')">Rejeitar</button>`;
+    } else if (u.status === 'approved' && u.role !== 'admin') {
+      actions = `<button class="btn-revoke" onclick="revokeUser('${u.id}')">Revogar acesso</button>`;
+    } else if (u.status === 'rejected') {
+      actions = `<button class="btn-approve" onclick="approveUser('${u.id}')">Aprovar</button>`;
+    }
+    return `<div class="admin-user-row">
+      <div class="admin-user-avatar">${initial}</div>
+      <div class="admin-user-info">
+        <div class="admin-user-name">${name}${u.role === 'admin' ? '<span class="role-chip">Admin</span>' : ''}</div>
+        <div class="admin-user-meta">${u.email || ''} ${u.phone ? '· ' + u.phone : ''}</div>
+      </div>
+      <div class="admin-user-actions">${actions}</div>
+    </div>`;
+  }).join('');
+}
+
+async function approveUser(id) {
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    const { error } = await sb.from('profiles').update({ status: 'approved', approved_at: new Date().toISOString(), approved_by: session.user.id }).eq('id', id);
+    if (error) throw error;
+    showToast('Usuário aprovado com sucesso.', 'success');
+    loadAdminUsers();
+  } catch (err) { showToast(err.message || 'Erro ao aprovar usuário.', 'error'); }
+}
+async function rejectUser(id) {
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    const { error } = await sb.from('profiles').update({ status: 'rejected', approved_at: new Date().toISOString(), approved_by: session.user.id }).eq('id', id);
+    if (error) throw error;
+    showToast('Usuário rejeitado.', 'success');
+    loadAdminUsers();
+  } catch (err) { showToast(err.message || 'Erro ao rejeitar usuário.', 'error'); }
+}
+async function revokeUser(id) {
+  if (!confirm('Revogar o acesso deste usuário? Ele voltará para a lista de pendentes.')) return;
+  try {
+    const { error } = await sb.from('profiles').update({ status: 'pending', approved_at: null, approved_by: null }).eq('id', id);
+    if (error) throw error;
+    showToast('Acesso revogado.', 'success');
+    loadAdminUsers();
+  } catch (err) { showToast(err.message || 'Erro ao revogar acesso.', 'error'); }
 }
 
 /* ══════════════ BOOT ══════════════ */
