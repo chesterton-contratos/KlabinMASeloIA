@@ -105,8 +105,8 @@ b{font-weight:700}
 
 /* ═════════ SHELL ═════════ */
 #dashboard{display:none;min-height:100vh}
-.app-shell{display:grid;grid-template-columns:var(--rail-w) var(--maya-w) minmax(0,1fr);min-height:100vh;transition:grid-template-columns var(--tr)}
-body.maya-collapsed .app-shell{grid-template-columns:var(--rail-w) 0 minmax(0,1fr)}
+.app-shell{display:grid;grid-template-columns:var(--rail-w) minmax(0,1fr) var(--maya-w);min-height:100vh;transition:grid-template-columns var(--tr)}
+body.maya-collapsed .app-shell{grid-template-columns:var(--rail-w) minmax(0,1fr) 0}
 
 /* ── RAIL (navegação, ícones) ── */
 .rail{position:sticky;top:0;height:100vh;display:flex;flex-direction:column;align-items:center;gap:6px;padding:16px 10px;
@@ -132,10 +132,10 @@ body.maya-collapsed .app-shell{grid-template-columns:var(--rail-w) 0 minmax(0,1f
   display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px}
 
 /* ── MAYA (esquerda, colapsável) ── */
-.maya-col{position:sticky;top:0;height:100vh;overflow:hidden;background:var(--surface);border-right:1px solid var(--line);
+.maya-col{order:3;position:sticky;top:0;height:100vh;overflow:hidden;background:var(--surface);border-left:1px solid var(--line);
   display:flex;flex-direction:column;z-index:20;transition:var(--tr)}
-body.maya-collapsed .maya-col{border-right:none;pointer-events:none}
-.maya-panel{display:flex;flex-direction:column;height:100%;width:var(--maya-w)}
+body.maya-collapsed .maya-col{border-left:none;pointer-events:none}
+.maya-panel{display:flex;flex-direction:column;height:100%;width:var(--maya-w);margin-left:auto}
 .maya-hdr{display:flex;align-items:center;gap:11px;padding:16px 16px 14px;border-bottom:1px solid var(--line-2);background:var(--surface-2)}
 .maya-logo{width:42px;height:42px;border-radius:12px;overflow:hidden;flex-shrink:0;box-shadow:var(--sh-sm);border:1px solid var(--line)}
 .maya-kicker{font-size:10px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--acc)}
@@ -160,13 +160,14 @@ body.maya-collapsed .maya-col{border-right:none;pointer-events:none}
 .maya-send:disabled{opacity:.55;cursor:not-allowed}
 
 /* botão flutuante para reabrir a MAYA quando colapsada */
-.maya-fab{display:none;position:fixed;left:88px;bottom:24px;z-index:60;align-items:center;gap:10px;background:linear-gradient(135deg,var(--acc),var(--acc-2));
+.maya-fab{display:none;position:fixed;right:24px;bottom:24px;z-index:60;align-items:center;gap:10px;background:linear-gradient(135deg,var(--acc),var(--acc-2));
   color:#fff;border:none;border-radius:999px;padding:12px 18px;font:700 13px 'Plus Jakarta Sans';cursor:pointer;box-shadow:0 12px 28px rgba(47,95,224,.4)}
 .maya-fab .imgbg{width:22px;height:22px;border-radius:6px}
 body.maya-collapsed .maya-fab{display:inline-flex}
 
 /* ── CENTER ── */
-.center{min-width:0;padding:24px 30px 40px;overflow:visible}
+.center{order:2;min-width:0;padding:24px 30px 40px;overflow:visible}
+.rail{order:1}
 .page-head{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;margin-bottom:20px;flex-wrap:wrap;
   background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:20px 24px;box-shadow:var(--sh-sm)}
 .ph-hello{font-size:12.5px;color:var(--t2);font-weight:600}
@@ -192,9 +193,9 @@ body.maya-collapsed .maya-fab{display:inline-flex}
 .sec-label .count-chip{margin-left:auto;font:600 11.5px 'Plus Jakarta Sans';color:var(--t2);background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:5px 12px}
 
 /* ── KPI cards (clean) ── */
-.kpi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(212px,1fr));gap:14px;margin-bottom:16px}
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(228px,1fr));gap:14px;margin-bottom:16px}
 .kpi{display:flex;align-items:flex-start;gap:13px;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);
-  padding:18px;transition:var(--tr);position:relative;box-shadow:var(--sh-sm);cursor:default}
+  padding:18px;transition:var(--tr);position:relative;box-shadow:var(--sh-sm);cursor:default;min-height:122px}
 .kpi[data-exp]{cursor:pointer}
 .kpi:hover{box-shadow:var(--sh);transform:translateY(-2px)}
 .kpi-ico{width:44px;height:44px;flex-shrink:0;border-radius:12px;display:flex;align-items:center;justify-content:center;
@@ -279,6 +280,17 @@ body.maya-collapsed .maya-fab{display:inline-flex}
 .pbi-wrap{position:relative;width:100%;aspect-ratio:16/9;min-height:520px;background:var(--surface-2)}
 .pbi-wrap iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
 
+/* ── SGA section ── */
+.sga-card{display:flex;align-items:center;gap:24px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh-sm);padding:28px;flex-wrap:wrap}
+.sga-logo{width:120px;height:120px;flex-shrink:0;border-radius:20px;background:#fff;border:1px solid var(--line);box-shadow:var(--sh-sm);display:flex;align-items:center;justify-content:center}
+.sga-logo .imgbg{width:88px;height:88px}
+.sga-info{flex:1;min-width:260px}
+.sga-kicker{font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--acc)}
+.sga-title{font-size:21px;font-weight:800;letter-spacing:-.02em;color:var(--t1);margin-top:4px}
+.sga-desc{font-size:13.5px;color:var(--t2);line-height:1.6;margin-top:8px;max-width:620px}
+.btn-sga{display:inline-flex;align-items:center;gap:9px;margin-top:16px;background:linear-gradient(135deg,var(--acc),var(--acc-2));color:#fff;border:none;border-radius:12px;padding:13px 22px;font:700 14px 'Plus Jakarta Sans';cursor:pointer;box-shadow:0 8px 20px rgba(47,95,224,.3);transition:var(--tr)}
+.btn-sga:hover{transform:translateY(-1px);box-shadow:0 12px 28px rgba(47,95,224,.4)}
+
 .footer{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:20px 4px 6px;margin-top:24px;border-top:1px solid var(--line-2);color:var(--t3);font-size:11.5px}
 .footer .fsep{width:1px;height:15px;background:var(--line)}
 
@@ -341,10 +353,9 @@ body.maya-collapsed .maya-fab{display:inline-flex}
 @media(max-width:900px){
   .app-shell{grid-template-columns:var(--rail-w) minmax(0,1fr)}
   body.maya-collapsed .app-shell{grid-template-columns:var(--rail-w) minmax(0,1fr)}
-  .maya-col{position:fixed;left:var(--rail-w);top:0;bottom:0;width:min(360px,86vw);transform:translateX(-108%);box-shadow:var(--sh-lg);transition:transform var(--tr)}
+  .maya-col{position:fixed;right:0;left:auto;top:0;bottom:0;width:min(360px,86vw);transform:translateX(108%);box-shadow:var(--sh-lg);transition:transform var(--tr)}
   body:not(.maya-collapsed) .maya-col{transform:translateX(0)}
   .maya-panel{width:min(360px,86vw)}
-  .maya-fab{left:auto;right:22px}
   body:not(.maya-collapsed) .maya-fab{display:none}
 }
 @media(max-width:640px){
@@ -353,7 +364,7 @@ body.maya-collapsed .maya-fab{display:inline-flex}
   .rail{position:fixed;bottom:0;left:0;right:0;top:auto;height:auto;flex-direction:row;overflow-x:auto;border-right:none;border-top:1px solid var(--line);padding:6px}
   .rail-logo,.rail-spacer{display:none}
   .rail-item{width:44px;height:44px}
-  .maya-col{left:0}
+  .maya-col{right:0;left:auto}
   .center{padding:18px 15px 88px}
   .page-head{flex-direction:column}
 }
@@ -479,9 +490,9 @@ body.maya-collapsed .maya-fab{display:inline-flex}
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
       <span class="tip">Relatório Power BI</span>
     </button>
-    <button class="rail-sga" onclick="openSGA()" aria-label="Abrir sistema SGA">
-      <span class="imgbg img-sga" role="img" aria-label="SGA"></span>
-      <span class="tip" style="left:60px">Abrir sistema SGA</span>
+    <button class="rail-item" data-sec="sga" onclick="showSection('sga')" aria-label="SGA">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 2 7l10 5 10-5-10-5Z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+      <span class="tip">SGA · Sistema</span>
     </button>
     <div class="rail-spacer"></div>
     <button class="rail-item" onclick="openAdminPanel()" id="btn-admin-panel" style="display:none" aria-label="Administração">
@@ -511,7 +522,7 @@ body.maya-collapsed .maya-fab{display:inline-flex}
         </div>
         <span class="maya-online"><span class="dot"></span>Online</span>
         <button class="maya-collapse" onclick="collapseMaya()" title="Recolher MAYA (mais espaço para os cards)">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
         </button>
       </div>
       <div class="maya-body" id="maya-body"></div>
@@ -573,6 +584,26 @@ body.maya-collapsed .maya-fab{display:inline-flex}
           <div><div class="pbi-title">Selos Mecânicos · Klabin Monte Alegre</div><div class="pbi-sub">Análise de condição operacional · séries históricas · Chesterton do Brasil</div></div>
         </div>
         <div class="pbi-wrap"><iframe id="pbi-frame" src="about:blank" allowfullscreen sandbox="allow-scripts allow-same-origin allow-popups allow-forms allow-top-navigation" title="Power BI Selos"></iframe></div>
+      </div>
+    </section>
+
+    <!-- SGA -->
+    <section class="dash-section" id="section-sga">
+      <div class="sec-label">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 2 7l10 5 10-5-10-5Z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        Sistema SGA · AppSheet
+      </div>
+      <div class="sga-card">
+        <div class="sga-logo"><span class="imgbg img-sga" role="img" aria-label="SGA"></span></div>
+        <div class="sga-info">
+          <div class="sga-kicker">Sistema de Gestão de Ativos</div>
+          <div class="sga-title">Acesse o SGA no AppSheet</div>
+          <div class="sga-desc">Aplicativo operacional onde a equipe alimenta as bases do contrato (BD, ROTA, SERV e SAP) da Klabin Monte Alegre. Este painel e a assistente MAYA leem esses dados já tratados via n8n + Supabase — o SGA é a origem da operação em campo.</div>
+          <button class="btn-sga" onclick="openSGA()">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6M10 14 21 3"/></svg>
+            Abrir sistema SGA
+          </button>
+        </div>
       </div>
     </section>
 
