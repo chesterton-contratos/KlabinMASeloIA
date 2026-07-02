@@ -598,7 +598,7 @@ body.maya-collapsed .maya-fab{display:inline-flex}
         <div class="sga-info">
           <div class="sga-kicker">Sistema de Gestão de Ativos</div>
           <div class="sga-title">Acesse o SGA no AppSheet</div>
-          <div class="sga-desc">Aplicativo operacional onde a equipe alimenta as bases do contrato (BD, ROTA, SERV e SAP) da Klabin Monte Alegre. Este painel e a assistente MAYA leem esses dados já tratados via n8n + Supabase — o SGA é a origem da operação em campo.</div>
+          <div class="sga-desc">Aplicativo operacional onde a equipe alimenta as bases do contrato (BD, ROTA, SERV e SAP) da Klabin Monte Alegre. Este painel e a assistente MAYA leem os dados já tratados e organizados pelo SGA — a origem da operação em campo.</div>
           <button class="btn-sga" onclick="openSGA()">
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6M10 14 21 3"/></svg>
             Abrir sistema SGA
@@ -610,7 +610,7 @@ body.maya-collapsed .maya-fab{display:inline-flex}
     <div class="footer">
       <span class="imgbg img-sga" role="img" aria-label="SGA" style="height:22px;width:58px;opacity:.75"></span>
       <span class="fsep"></span>
-      <span>A.W. Chesterton do Brasil · dados do SGA tratados via n8n + Supabase (Silver/Gold) · análise por MAYA IA</span>
+      <span>A.W. Chesterton do Brasil · dados organizados e rastreados pelo SGA · análise por MAYA IA</span>
     </div>
   </main>
 
@@ -668,7 +668,7 @@ body.maya-collapsed .maya-fab{display:inline-flex}
 const CFG = {
   SUPABASE_URL: 'https://xbwmsslvaajrdafdnfyv.supabase.co',
   SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhid21zc2x2YWFqcmRhZmRuZnl2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI3NDk4NDUsImV4cCI6MjA5ODMyNTg0NX0.Ay-HLbSspigdHc8D3dDZh3MSg7ZJA6Dx-BEMoOjY46U',
-  N8N_BASE: 'https://primary-production-1e9c2.up.railway.app',
+  API_BASE: 'https://primary-production-1e9c2.up.railway.app',
   DASHBOARD_PATH: '/webhook/dashboard-klabin-ma-selo',
   CHAT_PATH: '/webhook/chat-klabin-ma-selo',
   PBI_SELOS: 'https://app.powerbi.com/view?r=eyJrIjoiMGQxY2RlYjYtOGIwYi00NjJkLThlNjgtNGM2YjZiODRlZjdkIiwidCI6ImYwMGQ1YzkwLTE2ZmQtNGUwNi1iY2Q2LWJmM2Y2MjEzNjVhMCJ9&pageName=967f19c6065e9727d0bb',
@@ -868,11 +868,11 @@ function kpiCard(colorVar,icoKey,lbl,val,opt){
 
 async function loadDashboard(){
   try{
-    const res=await fetch(CFG.N8N_BASE+CFG.DASHBOARD_PATH,{cache:'no-store'});
+    const res=await fetch(CFG.API_BASE+CFG.DASHBOARD_PATH,{cache:'no-store'});
     if(!res.ok)throw new Error('HTTP '+res.status);
     const d=await res.json();renderDashboard(d);
   }catch(err){
-    document.getElementById('kpi-grid').innerHTML='<div class="placeholder err" style="grid-column:1/-1">⚠️ Não foi possível carregar os dados do painel (Workflow 02). Verifique se o webhook do n8n está ativo.</div>';
+    document.getElementById('kpi-grid').innerHTML='<div class="placeholder err" style="grid-column:1/-1">⚠️ Não foi possível carregar os dados do painel no momento. Tente atualizar a página em instantes.</div>';
     document.getElementById('status-text').textContent='Offline';
     document.getElementById('status-pill').style.color='var(--red)';
     console.error(err);
@@ -916,8 +916,8 @@ const DRILL_META={
 };
 window._drillKey=null;
 
-/* Fallback (apenas quando o Workflow 02 ainda não devolve card_tags):
-   reconstrói uma lista PARCIAL a partir do ranking + alertas do payload. */
+/* Fallback (quando o SGA ainda não devolve a lista completa card_tags):
+   reconstrói uma lista PARCIAL a partir do ranking + alertas do painel. */
 function fallbackList(key){
   const d=window.DASH||{},ca=d.critical_assets||[],al=d.alerts||[],byTag={};
   const push=(tag,area,detail,level,dup)=>{if(!tag)return;const id=dup?(tag+'|'+(detail||'')):tag;if(!byTag[id])byTag[id]={tag,area:area||'',detail:detail||'',level:level||''};};
@@ -956,7 +956,7 @@ function renderDrillList(){
   const total=meta.total?meta.total(d):rows.length;
   const uniqueTxt=meta.unique?'TAGs únicos':'ocorrências (uma TAG pode repetir)';
   let note;
-  if(!window._drillComplete){note=`Lista parcial (via ranking do painel). Para a lista completa e sem duplicação, publique o Workflow 02 com o node Get_Card_Tags. Total registrado: ${fmt(total)}.`;}
+  if(!window._drillComplete){note=`Lista parcial (via ranking do painel). A lista completa e sem duplicação é exibida assim que o SGA disponibiliza o detalhamento. Total registrado: ${fmt(total)}.`;}
   else{note=`${fmt(rows.length)}${q?' de '+fmt(window._drillRows.length):''} ${uniqueTxt} · total no card: ${fmt(total)}`;}
   document.getElementById('drill-note').textContent=note;
   const body=document.getElementById('drill-body');
@@ -1036,10 +1036,21 @@ function renderAlerts(d){
   wrap.innerHTML=head+dist+legendHTML()+groupsHTML;
 }
 
-/* ══════════════ MAYA CHAT (Workflow 03) ══════════════ */
+/* ══════════════ MAYA CHAT ══════════════ */
 function renderSuggestions(){document.getElementById('maya-suggest').innerHTML=SUGGESTIONS.map(s=>`<button class="chip-suggest" onclick="quickAsk(this.textContent)">${s}</button>`).join('');}
 function quickAsk(t){document.getElementById('maya-input').value=t;sendMayaMessage();}
 function appendMayaMessage(who,text){const body=document.getElementById('maya-body');const div=document.createElement('div');div.className='msg '+who;div.textContent=text;body.appendChild(div);body.scrollTop=body.scrollHeight;return div;}
+/* Botão de download do relatório PDF gerado pela MAYA */
+function appendMayaPdf(base64,fileName){
+  if(!base64)return;
+  const body=document.getElementById('maya-body');
+  const wrap=document.createElement('div');wrap.className='msg bot';
+  const a=document.createElement('a');
+  a.href='data:application/pdf;base64,'+base64;a.download=fileName||'Relatorio_MAYA.pdf';
+  a.className='btn-sga';a.style.cssText='display:inline-flex;gap:8px;align-items:center;text-decoration:none;margin-top:2px';
+  a.innerHTML='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg> Baixar relatório em PDF';
+  wrap.appendChild(a);body.appendChild(wrap);body.scrollTop=body.scrollHeight;
+}
 async function sendMayaMessage(){
   const input=document.getElementById('maya-input');const message=input.value.trim();if(!message)return;
   input.value='';document.getElementById('maya-suggest').innerHTML='';appendMayaMessage('user',message);
@@ -1048,10 +1059,11 @@ async function sendMayaMessage(){
   document.getElementById('maya-send-btn').disabled=true;
   try{
     const {data:{session}}=await sb.auth.getSession();const usuario=session?session.user.email:'Operador';
-    const res=await fetch(CFG.N8N_BASE+CFG.CHAT_PATH,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contract_key:'klabin_ma_selo',usuario,message})});
+    const res=await fetch(CFG.API_BASE+CFG.CHAT_PATH,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contract_key:'klabin_ma_selo',usuario,message})});
     if(!res.ok)throw new Error('HTTP '+res.status);
     const data=await res.json();loadingEl.remove();appendMayaMessage('bot',data.answer||'Não foi possível obter uma resposta no momento.');
-  }catch(err){loadingEl.remove();appendMayaMessage('bot','Não consegui falar com o assistente agora (Workflow 03 indisponível). Tente novamente em instantes.');console.error(err);}
+    if(data.pdfBase64)appendMayaPdf(data.pdfBase64,data.fileName);
+  }catch(err){loadingEl.remove();appendMayaMessage('bot','Não consegui falar com a MAYA agora. Tente novamente em instantes.');console.error(err);}
   finally{document.getElementById('maya-send-btn').disabled=false;}
 }
 
