@@ -257,7 +257,24 @@ body.maya-collapsed .maya-fab{display:inline-flex}
 .rl-badge{font-size:10px;font-weight:800;border-radius:999px;padding:2px 8px}
 .rl-badge.crit{background:var(--red-soft);color:var(--red)}.rl-badge.alto{background:var(--orange-soft);color:var(--orange)}
 .rl-badge.medio{background:var(--amber-soft);color:var(--amber)}.rl-badge.baixo{background:var(--green-soft);color:var(--green)}
+.rl-badge.monitor{background:var(--acc-soft);color:var(--acc)}
 .rl-badge.neutral{background:var(--surface-3);color:var(--t2)}
+
+/* ── Equipamentos (tabela rolável, nova aba) ── */
+.equip-panel{padding:16px}
+.equip-toolbar{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.equip-search{flex:1;min-width:180px;background:var(--surface-2);border:1.5px solid var(--line);border-radius:11px;
+  padding:9px 13px;font:600 13px 'Plus Jakarta Sans';color:var(--t1);outline:none;transition:var(--tr)}
+.equip-search:focus{border-color:var(--acc);box-shadow:var(--ring);background:var(--surface)}
+.equip-scroll{max-height:62vh;overflow-y:auto;overflow-x:auto;border:1px solid var(--line);border-radius:13px;background:var(--surface)}
+.equip-table{width:100%;border-collapse:collapse;font-size:12.5px;min-width:920px}
+.equip-table thead th{position:sticky;top:0;z-index:2;background:var(--surface-2);color:var(--t2);font-weight:800;
+  text-align:left;padding:11px 13px;border-bottom:1.5px solid var(--line);white-space:nowrap;font-size:11px;letter-spacing:.02em;text-transform:uppercase}
+.equip-table tbody td{padding:10px 13px;border-bottom:1px solid var(--line-2);color:var(--t1);white-space:nowrap}
+.equip-table tbody tr:hover{background:var(--surface-2)}
+.equip-table tbody tr:last-child td{border-bottom:none}
+.equip-tagcell{font:700 12px 'IBM Plex Mono';color:var(--acc)}
+.equip-empty{padding:34px;text-align:center;color:var(--t3);font-weight:600}
 .risk-legend{background:var(--surface-2);border:1px solid var(--line-2);border-radius:13px;margin:14px 0;overflow:hidden}
 .rl-head{display:flex;align-items:center;gap:11px;padding:13px 15px;cursor:pointer;user-select:none}
 .rl-ic{width:30px;height:30px;border-radius:9px;background:var(--acc-soft);color:var(--acc);display:flex;align-items:center;justify-content:center}
@@ -494,6 +511,10 @@ body.maya-collapsed .maya-fab{display:inline-flex}
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 2 7l10 5 10-5-10-5Z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
       <span class="tip">SGA · Sistema</span>
     </button>
+    <button class="rail-item" data-sec="equip" onclick="showSection('equip')" aria-label="Equipamentos">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="4" rx="1"/><rect x="3" y="10" width="18" height="4" rx="1"/><rect x="3" y="16" width="18" height="4" rx="1"/></svg>
+      <span class="tip">Equipamentos</span>
+    </button>
     <div class="rail-spacer"></div>
     <button class="rail-item" onclick="openAdminPanel()" id="btn-admin-panel" style="display:none" aria-label="Administração">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/></svg>
@@ -603,6 +624,23 @@ body.maya-collapsed .maya-fab{display:inline-flex}
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6M10 14 21 3"/></svg>
             Abrir sistema SGA
           </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- EQUIPAMENTOS -->
+    <section class="dash-section" id="section-equip">
+      <div class="sec-label">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="4" rx="1"/><rect x="3" y="10" width="18" height="4" rx="1"/><rect x="3" y="16" width="18" height="4" rx="1"/></svg>
+        Equipamentos · Cópia da Base (BD)
+        <span class="count-chip" id="meta-equip">—</span>
+      </div>
+      <div class="panel equip-panel">
+        <div class="equip-toolbar">
+          <input type="text" class="equip-search" id="equip-search" placeholder="Buscar por TAG, área, especificação…" oninput="renderEquipTable()">
+        </div>
+        <div class="equip-scroll" id="equip-scroll">
+          <div class="placeholder"><div class="spinner"></div>Carregando equipamentos…</div>
         </div>
       </div>
     </section>
@@ -840,8 +878,8 @@ function fmt(n){return Math.round(n||0).toLocaleString('pt-BR');}
 function fmtDateTime(iso){if(!iso)return '—';try{return new Date(iso).toLocaleString('pt-BR',{timeZone:'America/Sao_Paulo'});}catch(e){return iso;}}
 function fmtDate(iso){if(!iso)return '';try{return new Date(iso).toLocaleDateString('pt-BR',{timeZone:'America/Sao_Paulo'});}catch(e){return String(iso).slice(0,10);}}
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
-function levelKey(l){const m={'Crítico':'crit','Critico':'crit','Alto':'alto','Médio':'medio','Medio':'medio','Baixo':'baixo'};return m[l]||'neutral';}
-function levelColor(l){const m={crit:'var(--red)',alto:'var(--orange)',medio:'var(--amber)',baixo:'var(--green)',neutral:'var(--t3)'};return m[levelKey(l)];}
+function levelKey(l){const m={'Crítico':'crit','Critico':'crit','Alto':'alto','Médio':'medio','Medio':'medio','Atenção':'medio','Atencao':'medio','Monitoramento':'monitor','Baixo':'baixo','Normal':'baixo'};return m[l]||'neutral';}
+function levelColor(l){const m={crit:'var(--red)',alto:'var(--orange)',medio:'var(--amber)',monitor:'var(--acc)',baixo:'var(--green)',neutral:'var(--t3)'};return m[levelKey(l)];}
 function svgIcon(p){return `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;}
 const ICONS={
   assets:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.4"/>',
@@ -885,10 +923,21 @@ function renderDashboard(d){
      avaliado pela gestão ativa (intervenções/rotas) e pela tendência de falhas.
      Ver Logica_Status_Contrato.txt para o cálculo formal a ser aplicado no backend. */
   const pill=document.getElementById('status-pill');
-  pill.style.color='var(--green)';pill.style.background='var(--green-soft)';
-  document.getElementById('status-text').textContent='Contrato em gestão ativa';
+  /* Usa contract_health_label calculado no backend (Logica_Status_Contrato.txt) quando disponível;
+     mantém o texto fixo como fallback para não quebrar caso o campo ainda não exista. */
+  const healthLabel=d.contract_health_label||'Contrato em gestão ativa';
+  const healthScore=(d.contract_health_score!=null)?d.contract_health_score:null;
+  let pillColor='var(--green)',pillBg='var(--green-soft)';
+  if(healthScore!=null){
+    if(healthScore<30){pillColor='var(--red)';pillBg='var(--red-soft)';}
+    else if(healthScore<50){pillColor='var(--orange)';pillBg='var(--orange-soft)';}
+    else if(healthScore<75){pillColor='var(--acc)';pillBg='var(--acc-soft)';}
+  }
+  pill.style.color=pillColor;pill.style.background=pillBg;
+  document.getElementById('status-text').textContent=healthLabel;
   document.getElementById('ph-status-tag').textContent=`${fmt(d.recommended_seal_changes)} recomendações · ${fmt(d.failures_current_year)} falhas no ano`;
   document.getElementById('ph-lastupdate').textContent='Atualizado '+fmtDateTime(d.last_update);
+  renderEquipTable();
 
   const grid=[
     kpiCard('var(--steel)','assets','Total de Ativos',fmt(d.total_assets),{sub:(d.assets_in_contract!=null?fmt(d.assets_in_contract)+' em contrato':'')}),
@@ -1034,6 +1083,43 @@ function renderAlerts(d){
         <span class="acc-count">${items.length}</span><span class="acc-chev"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span></div>
       <div class="acc-body">${itemsHTML}${more}</div></div>`;}).join('')+`</div>`;
   wrap.innerHTML=head+dist+legendHTML()+groupsHTML;
+}
+
+/* ══════════════ EQUIPAMENTOS (cópia estilizada do BD) ══════════════ */
+function renderEquipTable(){
+  const wrap=document.getElementById('equip-scroll');if(!wrap)return;
+  const d=window.DASH||{};
+  const rows=Array.isArray(d.equipamentos)?d.equipamentos:[];
+  const meta=document.getElementById('meta-equip');
+  if(!rows.length){
+    wrap.innerHTML='<div class="equip-empty">Nenhum equipamento carregado ainda. Abra o painel (Status Geral) para sincronizar os dados.</div>';
+    if(meta)meta.textContent='—';
+    return;
+  }
+  const q=(document.getElementById('equip-search')?.value||'').trim().toLowerCase();
+  const filtered=q?rows.filter(r=>[r.tag,r.area,r.seal_specification,r.seal_plan].some(v=>String(v||'').toLowerCase().includes(q))):rows;
+  if(meta)meta.textContent=`${fmt(filtered.length)} de ${fmt(rows.length)} equipamento(s)`;
+  if(!filtered.length){wrap.innerHTML=`<div class="equip-empty">Nenhum equipamento para “${esc(q)}”.</div>`;return;}
+  const body=filtered.map(r=>`
+    <tr>
+      <td class="equip-tagcell">${esc(r.tag||'—')}</td>
+      <td>${esc(r.seal_specification||'—')}</td>
+      <td>${r.intervention_count!=null?fmt(r.intervention_count):'—'}</td>
+      <td>${r.last_intervention_date?fmtDate(r.last_intervention_date):'—'}</td>
+      <td>${esc(r.last_seal_status||'—')}</td>
+      <td>${r.mtbf_months!=null?(r.mtbf_months+' m'):'—'}${r.mtbf_rating?` <span style="color:var(--t3);font-weight:600">(${esc(r.mtbf_rating)})</span>`:''}</td>
+      <td>${esc(r.area||'—')}</td>
+      <td>${esc(r.seal_plan||'—')}</td>
+      <td>${r.risk_level?`<span class="rl-badge ${levelKey(r.risk_level)}">${esc(r.risk_level)}</span>`:'—'}</td>
+    </tr>`).join('');
+  wrap.innerHTML=`
+    <table class="equip-table">
+      <thead><tr>
+        <th>TAG</th><th>Especificação</th><th>Qtd. Intervenções</th><th>Última Intervenção</th>
+        <th>Status Selo</th><th>MTBF</th><th>Área</th><th>Plano de Selagem</th><th>Criticidade</th>
+      </tr></thead>
+      <tbody>${body}</tbody>
+    </table>`;
 }
 
 /* ══════════════ MAYA CHAT ══════════════ */
