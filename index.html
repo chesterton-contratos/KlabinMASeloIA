@@ -320,7 +320,12 @@ body.maya-collapsed .maya-fab{display:inline-flex}
 .ev-table{width:100%;border-collapse:separate;border-spacing:0;font-size:13px;min-width:1180px}
 .ev-table thead th{position:sticky;top:0;z-index:3;background:var(--surface-2);color:var(--t2);font-weight:800;
   text-align:left;padding:13px 15px;border-bottom:2px solid var(--line);white-space:nowrap;font-size:11px;
-  letter-spacing:.03em;text-transform:uppercase}
+  letter-spacing:.03em;text-transform:uppercase;cursor:pointer;user-select:none;transition:color var(--tr),background var(--tr)}
+.ev-table thead th:hover{color:var(--acc);background:var(--surface-3)}
+.ev-table thead th.sorted{color:var(--acc)}
+.ev-th-in{display:inline-flex;align-items:center;gap:6px}
+.ev-sort-ind{display:inline-flex;width:11px;height:11px;opacity:.35;transition:var(--tr)}
+.ev-table thead th.sorted .ev-sort-ind{opacity:1;color:var(--acc)}
 .ev-table thead th:first-child{left:0;z-index:4}
 .ev-table tbody td{padding:12px 15px;border-bottom:1px solid var(--line-2);color:var(--t1);white-space:nowrap;font-weight:500}
 .ev-table tbody td:first-child{position:sticky;left:0;z-index:1;background:var(--surface)}
@@ -955,8 +960,24 @@ function showSection(name){
 }
 
 /* ══════════════ MAYA collapse ══════════════ */
-function collapseMaya(){document.body.classList.add('maya-collapsed');localStorage.setItem('klabin_maya','collapsed');}
-function expandMaya(){document.body.classList.remove('maya-collapsed');localStorage.setItem('klabin_maya','open');setTimeout(()=>document.getElementById('maya-input')?.focus(),150);}
+/* Ao abrir/fechar a MAYA, a coluna central muda de largura via animação de
+   grid-template-columns. Grids com auto-fit/auto-fill (KPIs, distribuição de
+   alertas, etc.) podem não recalcular as colunas após essa animação em alguns
+   navegadores — por isso só a Central de Alertas (lista flex) parecia se adaptar.
+   forceGridReflow() reforça o recálculo do layout após a transição. */
+function forceGridReflow(){
+  document.querySelectorAll('.center .kpi-grid, .center .alert-dist, .center .tag-grid').forEach(g=>{
+    g.style.display='none';
+    void g.offsetHeight;      /* leitura síncrona → reflow imediato, sem flicker */
+    g.style.display='';
+  });
+}
+function scheduleReflow(){
+  requestAnimationFrame(forceGridReflow);   /* logo após a mudança de classe */
+  setTimeout(forceGridReflow,300);          /* e ao término da transição (~.24s) */
+}
+function collapseMaya(){document.body.classList.add('maya-collapsed');localStorage.setItem('klabin_maya','collapsed');scheduleReflow();}
+function expandMaya(){document.body.classList.remove('maya-collapsed');localStorage.setItem('klabin_maya','open');scheduleReflow();setTimeout(()=>document.getElementById('maya-input')?.focus(),150);}
 function initMaya(){
   if(localStorage.getItem('klabin_maya')==='collapsed')document.body.classList.add('maya-collapsed');
   const body=document.getElementById('maya-body');
@@ -1245,6 +1266,39 @@ function populateEquipFilters(){
   fill('ev-f-spec',rows.map(r=>r.seal_specification),'Todas');
   fill('ev-f-mtbf',rows.map(r=>r.mtbf_rating),'Todos');
 }
+/* colunas na ordem pedida + tipo de ordenação por coluna */
+const EV_RISK_RANK={'Crítico':6,'Critico':6,'Alto':5,'Médio':4,'Medio':4,'Atenção':4,'Atencao':4,'Monitoramento':3,'Baixo':2,'Normal':1};
+const EV_COLS=[
+  {key:'tag',            label:'TAG',                type:'text', get:r=>r.tag,
+    cell:r=>`<span class="ev-tag">${esc(r.tag||'—')}</span>`},
+  {key:'risk_level',     label:'Criticidade',        type:'rank', get:r=>EV_RISK_RANK[String(r.risk_level||'').trim()]??0,
+    cell:r=>r.risk_level?`<span class="rl-badge ${levelKey(r.risk_level)}">${esc(r.risk_level)}</span>`:'<span class="ev-muted">—</span>'},
+  {key:'intervention_count',label:'Qtd. Intervenções',type:'num', get:r=>r.intervention_count,
+    cell:r=>r.intervention_count!=null?`<span class="ev-num">${fmt(r.intervention_count)}</span>`:'<span class="ev-muted">—</span>'},
+  {key:'mtbf_months',    label:'MTBF',               type:'num', get:r=>r.mtbf_months,
+    cell:r=>r.mtbf_months!=null?`<span class="ev-num">${esc(r.mtbf_months)} m</span>${r.mtbf_rating?` <span class="ev-mtbf-tag">(${esc(r.mtbf_rating)})</span>`:''}`:'<span class="ev-muted">—</span>'},
+  {key:'last_intervention_date',label:'Última Intervenção',type:'date',get:r=>r.last_intervention_date,
+    cell:r=>r.last_intervention_date?fmtDate(r.last_intervention_date):'<span class="ev-muted">—</span>'},
+  {key:'area',           label:'Área',               type:'text', get:r=>r.area,  cell:r=>esc(r.area||'—')},
+  {key:'seal_specification',label:'Especificação',   type:'text', get:r=>r.seal_specification, cell:r=>esc(r.seal_specification||'—')},
+  {key:'seal_plan',      label:'Plano de Selagem',   type:'text', get:r=>r.seal_plan, cell:r=>esc(r.seal_plan||'—')}
+];
+window.EV_SORT={key:'tag',dir:1};
+function sortEquip(key){
+  const s=window.EV_SORT;
+  if(s.key===key){s.dir=-s.dir;}else{s.key=key;s.dir=1;}
+  renderEquipView();
+}
+function evCompare(a,b,col,dir){
+  let va=col.get(a),vb=col.get(b);
+  const emptyA=(va==null||va===''),emptyB=(vb==null||vb===''); /* vazios sempre no fim */
+  if(emptyA&&emptyB)return 0;if(emptyA)return 1;if(emptyB)return -1;
+  let r;
+  if(col.type==='num'||col.type==='rank'){r=(Number(va)||0)-(Number(vb)||0);}
+  else if(col.type==='date'){r=new Date(va).getTime()-new Date(vb).getTime();}
+  else{r=String(va).localeCompare(String(vb),'pt-BR',{numeric:true,sensitivity:'base'});}
+  return r*dir;
+}
 function renderEquipView(){
   const wrap=document.getElementById('ev-scroll');if(!wrap)return;
   const rows=Array.isArray(window.DASH?.equipamentos)?window.DASH.equipamentos:[];
@@ -1258,7 +1312,7 @@ function renderEquipView(){
   const fArea=document.getElementById('ev-f-area')?.value||'';
   const fSpec=document.getElementById('ev-f-spec')?.value||'';
   const fMtbf=document.getElementById('ev-f-mtbf')?.value||'';
-  const filtered=rows.filter(r=>
+  let filtered=rows.filter(r=>
     (!tagQ||String(r.tag||'').toLowerCase().includes(tagQ)) &&
     (!fPlan||String(r.seal_plan||'').trim()===fPlan) &&
     (!fArea||String(r.area||'').trim()===fArea) &&
@@ -1267,25 +1321,18 @@ function renderEquipView(){
   );
   if(cnt)cnt.textContent=`${fmt(filtered.length)} de ${fmt(rows.length)}`;
   if(!filtered.length){wrap.innerHTML='<div class="ev-empty">Nenhum equipamento para os filtros aplicados.</div>';return;}
-  const body=filtered.map(r=>`
-    <tr>
-      <td><span class="ev-tag">${esc(r.tag||'—')}</span></td>
-      <td>${r.risk_level?`<span class="rl-badge ${levelKey(r.risk_level)}">${esc(r.risk_level)}</span>`:'<span class="ev-muted">—</span>'}</td>
-      <td class="ev-num">${r.intervention_count!=null?fmt(r.intervention_count):'—'}</td>
-      <td>${r.mtbf_months!=null?`<span class="ev-num">${esc(r.mtbf_months)} m</span>${r.mtbf_rating?` <span class="ev-mtbf-tag">(${esc(r.mtbf_rating)})</span>`:''}`:'<span class="ev-muted">—</span>'}</td>
-      <td>${r.last_intervention_date?fmtDate(r.last_intervention_date):'<span class="ev-muted">—</span>'}</td>
-      <td>${esc(r.area||'—')}</td>
-      <td>${esc(r.seal_specification||'—')}</td>
-      <td>${esc(r.seal_plan||'—')}</td>
-    </tr>`).join('');
-  wrap.innerHTML=`
-    <table class="ev-table">
-      <thead><tr>
-        <th>TAG</th><th>Criticidade</th><th>Qtd. Intervenções</th><th>MTBF</th><th>Última Intervenção</th>
-        <th>Área</th><th>Especificação</th><th>Plano de Selagem</th>
-      </tr></thead>
-      <tbody>${body}</tbody>
-    </table>`;
+  const s=window.EV_SORT;const col=EV_COLS.find(c=>c.key===s.key)||EV_COLS[0];
+  filtered=filtered.slice().sort((a,b)=>evCompare(a,b,col,s.dir));
+  const arrow=dir=>dir>0
+    ?'<svg class="ev-sort-ind" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 15 12 9 18 15"/></svg>'
+    :'<svg class="ev-sort-ind" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>';
+  const head=EV_COLS.map(c=>{
+    const on=c.key===s.key;
+    const ind=on?arrow(s.dir):'<svg class="ev-sort-ind" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="8 9 12 5 16 9"/><polyline points="8 15 12 19 16 15"/></svg>';
+    return `<th class="${on?'sorted':''}" onclick="sortEquip('${c.key}')" title="Clique para ordenar"><span class="ev-th-in">${esc(c.label)}${ind}</span></th>`;
+  }).join('');
+  const body=filtered.map(r=>`<tr>${EV_COLS.map(c=>`<td>${c.cell(r)}</td>`).join('')}</tr>`).join('');
+  wrap.innerHTML=`<table class="ev-table"><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>`;
 }
 
 /* ══════════════ MAYA CHAT ══════════════ */
