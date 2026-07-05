@@ -336,6 +336,7 @@ body.maya-collapsed .maya-fab{display:inline-flex}
 .ev-num{font-variant-numeric:tabular-nums;font-weight:700}
 .ev-muted{color:var(--t3);font-weight:600}
 .ev-mtbf-tag{color:var(--t3);font-weight:600;font-size:11px}
+.ev-crtd{display:inline-flex;align-items:center;justify-content:center;min-width:24px;padding:2px 8px;border-radius:6px;background:rgba(255,255,255,.06);border:1px solid var(--line);color:var(--t1);font-weight:800;font-size:12px;letter-spacing:.5px}
 .ev-empty{padding:52px 24px;text-align:center;color:var(--t3);font-weight:600}
 @media(max-width:640px){
   .equipview-overlay{padding:0}
@@ -1224,13 +1225,14 @@ function renderEquipTable(){
       <td>${(()=>{const m=fmtMtbf(r.mtbf_months);return m!=null?(m+' m'):'—';})()}${r.mtbf_rating?` <span style="color:var(--t3);font-weight:600">(${esc(r.mtbf_rating)})</span>`:''}</td>
       <td>${esc(r.area||'—')}</td>
       <td>${esc(r.seal_plan||'—')}</td>
+      <td>${r.criticality_class?`<span class="ev-crtd">${esc(r.criticality_class)}</span>`:'—'}</td>
       <td>${r.risk_level?`<span class="rl-badge ${levelKey(r.risk_level)}">${esc(r.risk_level)}</span>`:'—'}</td>
     </tr>`).join('');
   wrap.innerHTML=`
     <table class="equip-table">
       <thead><tr>
         <th>TAG</th><th>Especificação</th><th>Qtd. Intervenções</th><th>Última Intervenção</th>
-        <th>Status Selo</th><th>MTBF</th><th>Área</th><th>Plano de Selagem</th><th>Criticidade</th>
+        <th>Status Selo</th><th>MTBF</th><th>Área</th><th>Plano de Selagem</th><th>Criticidade</th><th>Risk Level</th>
       </tr></thead>
       <tbody>${body}</tbody>
     </table>`;
@@ -1272,12 +1274,14 @@ const EV_RISK_RANK={'Crítico':6,'Critico':6,'Alto':5,'Médio':4,'Medio':4,'Aten
 const EV_COLS=[
   {key:'tag',            label:'TAG',                type:'text', get:r=>r.tag,
     cell:r=>`<span class="ev-tag">${esc(r.tag||'—')}</span>`},
-  {key:'risk_level',     label:'Criticidade',        type:'rank', get:r=>EV_RISK_RANK[String(r.risk_level||'').trim()]??0,
-    cell:r=>r.risk_level?`<span class="rl-badge ${levelKey(r.risk_level)}">${esc(r.risk_level)}</span>`:'<span class="ev-muted">—</span>'},
+  {key:'criticality_class',label:'Criticidade',      type:'text', get:r=>r.criticality_class,
+    cell:r=>r.criticality_class?`<span class="ev-crtd">${esc(r.criticality_class)}</span>`:'<span class="ev-muted">—</span>'},
   {key:'intervention_count',label:'Qtd. Intervenções',type:'num', get:r=>r.intervention_count,
     cell:r=>r.intervention_count!=null?`<span class="ev-num">${fmt(r.intervention_count)}</span>`:'<span class="ev-muted">—</span>'},
   {key:'mtbf_months',    label:'MTBF',               type:'num', get:r=>r.mtbf_months,
     cell:r=>{const m=fmtMtbf(r.mtbf_months);return m!=null?`<span class="ev-num">${m} m</span>${r.mtbf_rating?` <span class="ev-mtbf-tag">(${esc(r.mtbf_rating)})</span>`:''}`:'<span class="ev-muted">—</span>';}},
+  {key:'risk_level',     label:'Risk Level',         type:'rank', get:r=>EV_RISK_RANK[String(r.risk_level||'').trim()]??0,
+    cell:r=>r.risk_level?`<span class="rl-badge ${levelKey(r.risk_level)}">${esc(r.risk_level)}</span>`:'<span class="ev-muted">—</span>'},
   {key:'last_intervention_date',label:'Última Intervenção',type:'date',get:r=>r.last_intervention_date,
     cell:r=>r.last_intervention_date?fmtDate(r.last_intervention_date):'<span class="ev-muted">—</span>'},
   {key:'area',           label:'Área',               type:'text', get:r=>r.area,  cell:r=>esc(r.area||'—')},
