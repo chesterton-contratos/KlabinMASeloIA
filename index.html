@@ -310,7 +310,7 @@ body.maya-collapsed .maya-fab{display:inline-flex}
 .ev-input,.ev-select{background:var(--surface);border:1.5px solid var(--line);border-radius:10px;padding:9px 12px;
   font:600 13px 'Plus Jakarta Sans';color:var(--t1);outline:none;transition:var(--tr);width:100%}
 .ev-select{cursor:pointer;appearance:none;-webkit-appearance:none;
-  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
+  background-image:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='12'%20height='12'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%23888888'%20stroke-width='3'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpolyline%20points='6%209%2012%2015%2018%209'/%3E%3C/svg%3E");
   background-repeat:no-repeat;background-position:right 11px center;padding-right:30px}
 .ev-input:focus,.ev-select:focus{border-color:var(--acc);box-shadow:var(--ring);background:var(--surface)}
 .ev-clear{background:var(--surface);border:1.5px solid var(--line);border-radius:10px;color:var(--t2);
@@ -987,6 +987,7 @@ function initMaya(){
 
 /* ══════════════ DASHBOARD DATA ══════════════ */
 function fmt(n){return Math.round(n||0).toLocaleString('pt-BR');}
+function fmtMtbf(v){if(v==null||v==='')return null;const n=Number(v);return Number.isFinite(n)?n.toFixed(2):esc(String(v));}
 function fmtDateTime(iso){if(!iso)return '—';try{return new Date(iso).toLocaleString('pt-BR',{timeZone:'America/Sao_Paulo'});}catch(e){return iso;}}
 function fmtDate(iso){if(!iso)return '';try{return new Date(iso).toLocaleDateString('pt-BR',{timeZone:'America/Sao_Paulo'});}catch(e){return String(iso).slice(0,10);}}
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
@@ -1220,7 +1221,7 @@ function renderEquipTable(){
       <td>${r.intervention_count!=null?fmt(r.intervention_count):'—'}</td>
       <td>${r.last_intervention_date?fmtDate(r.last_intervention_date):'—'}</td>
       <td>${esc(r.last_seal_status||'—')}</td>
-      <td>${r.mtbf_months!=null?(r.mtbf_months+' m'):'—'}${r.mtbf_rating?` <span style="color:var(--t3);font-weight:600">(${esc(r.mtbf_rating)})</span>`:''}</td>
+      <td>${(()=>{const m=fmtMtbf(r.mtbf_months);return m!=null?(m+' m'):'—';})()}${r.mtbf_rating?` <span style="color:var(--t3);font-weight:600">(${esc(r.mtbf_rating)})</span>`:''}</td>
       <td>${esc(r.area||'—')}</td>
       <td>${esc(r.seal_plan||'—')}</td>
       <td>${r.risk_level?`<span class="rl-badge ${levelKey(r.risk_level)}">${esc(r.risk_level)}</span>`:'—'}</td>
@@ -1276,14 +1277,14 @@ const EV_COLS=[
   {key:'intervention_count',label:'Qtd. Intervenções',type:'num', get:r=>r.intervention_count,
     cell:r=>r.intervention_count!=null?`<span class="ev-num">${fmt(r.intervention_count)}</span>`:'<span class="ev-muted">—</span>'},
   {key:'mtbf_months',    label:'MTBF',               type:'num', get:r=>r.mtbf_months,
-    cell:r=>r.mtbf_months!=null?`<span class="ev-num">${esc(r.mtbf_months)} m</span>${r.mtbf_rating?` <span class="ev-mtbf-tag">(${esc(r.mtbf_rating)})</span>`:''}`:'<span class="ev-muted">—</span>'},
+    cell:r=>{const m=fmtMtbf(r.mtbf_months);return m!=null?`<span class="ev-num">${m} m</span>${r.mtbf_rating?` <span class="ev-mtbf-tag">(${esc(r.mtbf_rating)})</span>`:''}`:'<span class="ev-muted">—</span>';}},
   {key:'last_intervention_date',label:'Última Intervenção',type:'date',get:r=>r.last_intervention_date,
     cell:r=>r.last_intervention_date?fmtDate(r.last_intervention_date):'<span class="ev-muted">—</span>'},
   {key:'area',           label:'Área',               type:'text', get:r=>r.area,  cell:r=>esc(r.area||'—')},
   {key:'seal_specification',label:'Especificação',   type:'text', get:r=>r.seal_specification, cell:r=>esc(r.seal_specification||'—')},
   {key:'seal_plan',      label:'Plano de Selagem',   type:'text', get:r=>r.seal_plan, cell:r=>esc(r.seal_plan||'—')}
 ];
-window.EV_SORT={key:'tag',dir:1};
+window.EV_SORT={key:'mtbf_months',dir:1};
 function sortEquip(key){
   const s=window.EV_SORT;
   if(s.key===key){s.dir=-s.dir;}else{s.key=key;s.dir=1;}
